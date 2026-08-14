@@ -1,26 +1,40 @@
 # Fluxo — Painel de Operações Acadêmicas
 
-Painel de tarefas e rotinas feito para a Gabriela. É **um arquivo só** (`index.html`):
-dê dois cliques nele e o painel abre no navegador. Não precisa instalar nada, não precisa
-de internet e não tem login.
+Painel de tarefas e rotinas feito para a Gabriela. Não precisa instalar nada e não tem login.
+
+## Como abrir
+
+**No ar (recomendado):** https://loocawtech-bot.github.io/fluxo-operacoes/
+
+Abre no computador e no celular. Vale a pena **favoritar** e, no computador, deixar a aba
+fixada (botão direito na aba → *Fixar*).
+
+**No celular, dá para instalar como aplicativo:** abra o endereço no Chrome, toque no menu
+`⋮` e escolha *Adicionar à tela inicial* / *Instalar app*. Ele passa a abrir em tela cheia,
+com ícone próprio, como qualquer outro app.
+
+**Sem internet:** o arquivo `index.html` também funciona sozinho — dois cliques e pronto.
+Só que aí o navegador **não deixa** mostrar os avisos na área de trabalho (essa permissão
+só existe em endereços seguros, `https://`). Para ter os avisos, use o endereço acima.
 
 ---
 
 ## Onde ficam os dados
 
-Tudo fica salvo **no seu navegador, neste computador** — nada sai daqui.
+Tudo fica salvo **no seu próprio navegador** — nada sai dali. Não existe servidor, banco de
+dados nem login por trás: o site publicado é só o arquivo, e quem abrir o endereço vê um
+painel vazio, não o seu.
 
-Isso quer dizer duas coisas:
+Isso quer dizer três coisas:
 
 - Se você limpar os dados do navegador, o painel volta do zero.
-- Se trocar de computador, os dados não vão junto sozinhos.
+- **Cada aparelho tem seus próprios dados.** O que você fizer no computador não aparece no
+  celular, e vice-versa. Escolha um como principal.
+- Abrir pelo endereço `https://` e abrir o arquivo local são, para o navegador, dois lugares
+  diferentes — cada um com seus dados.
 
 Por isso, de vez em quando use **⚙ → Exportar backup**. Sai um arquivo `.json` que você
-guarda onde quiser; para restaurar, é **Importar backup**.
-
-> Sempre abra o painel pelo **mesmo caminho do arquivo**. Se você mover o `index.html` de
-> pasta, o navegador entende como se fosse outro endereço e não acha os dados antigos —
-> nesse caso, restaure pelo backup.
+guarda onde quiser; para restaurar (ou levar para outro aparelho), é **Importar backup**.
 
 ---
 
@@ -36,10 +50,13 @@ guarda onde quiser; para restaurar, é **Importar backup**.
 | Aguardando | Parado esperando terceiros (coordenação, aluno, outro setor) |
 | Concluído | Feito |
 
+**No celular**, as colunas aparecem uma de cada vez: deslize para o lado para trocar. Os
+botões do topo ficam no menu **☰**.
+
 **Mexendo nas tarefas**
 
-- **Arrastar**: segure o cartão e leve para outra coluna ou outra posição. Funciona com
-  mouse e também com o dedo, em tablet (aí é tocar e segurar por um instante antes de arrastar).
+- **Arrastar**: segure o cartão e leve para outra coluna ou outra posição. No celular ou
+  tablet, toque e segure um instante antes de arrastar (assim não confunde com rolar a tela).
 - **Criar rápido**: escreva no "+ nova tarefa" no rodapé da coluna e aperte Enter.
 - **Renomear sem abrir nada**: dois cliques no título do cartão.
 - **Abrir os detalhes**: um clique no cartão.
@@ -83,11 +100,12 @@ Dentro de cada tarefa há o campo **"Lembrar-me em"**, com atalhos: *Hoje 17h*, 
 
 **Para receber os avisos na área de trabalho** (a caixinha do Windows, mesmo com o painel
 minimizado): vá em **⚙ → Ativar avisos na área de trabalho** e autorize quando o navegador
-perguntar.
+perguntar. Isso só funciona pelo endereço `https://` — abrindo o arquivo local, o navegador
+não oferece a permissão.
 
 > ⚠️ **Importante:** os avisos só chegam **com o painel aberto** — ele pode estar minimizado
 > ou numa aba de fundo, mas precisa estar aberto. Não existe aviso com o navegador fechado,
-> porque não há servidor nenhum por trás: é só o arquivo no seu computador.
+> porque não há servidor nenhum por trás.
 > A recomendação é **fixar a aba** (botão direito na aba → *Fixar*) e deixar lá o dia todo.
 >
 > Se o navegador bloquear os avisos, o sino aqui dentro continua funcionando normalmente.
