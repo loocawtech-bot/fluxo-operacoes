@@ -1,0 +1,16 @@
+{
+  "name": "Fluxo — Painel de Operações Acadêmicas",
+  "short_name": "Fluxo",
+  "description": "Painel de tarefas, rotinas, prazos e manual de operações acadêmicas.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F5F6F8",
+  "theme_color": "#8A0538",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
