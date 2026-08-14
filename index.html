@@ -151,7 +151,9 @@ label.lbl{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;text
 .load .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:99px;transition:width .25s}
 .load.over .bar i{background:var(--danger)}
 .load small{font-size:12px;color:var(--muted);white-space:nowrap}
-.week{display:flex;gap:5px}
+.semana{display:flex;align-items:center;gap:4px;min-width:0}
+.semana .btn{flex:none;padding:0 7px}
+.week{display:flex;gap:5px;overflow-x:auto}
 .day{
   min-width:52px;padding:5px 7px;border-radius:var(--r-sm);
   border:1px solid var(--line);background:var(--surface-2);text-align:center;
@@ -370,6 +372,55 @@ body.arrastando .card{cursor:grabbing}
 .av:hover .x{opacity:1}
 
 /* ============================================================
+   CALENDÁRIO DO MÊS
+   ============================================================ */
+.modal.wide{width:800px}
+.cal-head{
+  /* minmax(0,1fr) e não 1fr: com 1fr um título longo estica a coluna e desalinha a grade */
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;  /* mesmo gap da grade, senão desalinha */
+  background:var(--surface-2);border-bottom:1px solid var(--line);
+}
+.cal-head span{
+  padding:7px 4px;text-align:center;font-size:10.5px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--line)}
+.cel{
+  background:var(--surface);min-height:98px;min-width:0;overflow:hidden;padding:5px 6px 6px;
+  display:flex;flex-direction:column;gap:3px;text-align:left;align-items:stretch;
+  border:none;border-radius:0;cursor:pointer;
+}
+.cel:hover{background:var(--surface-2)}
+.cel.fora{background:var(--surface-2)}
+.cel.fora .dn{color:var(--muted);opacity:.55}
+.cel.fds .dn{color:var(--muted)}
+.cel.hoje{box-shadow:inset 0 0 0 2px var(--accent)}
+.cel.sel{background:var(--accent-soft)}
+.cel .dn{font-size:12.5px;font-weight:600;line-height:1.2;flex:none;display:flex;align-items:center;gap:4px}
+.cel.hoje .dn{color:var(--accent)}
+.cel .cnt{display:none;font-size:10px;font-weight:700;min-width:16px;height:16px;padding:0 4px;
+  border-radius:99px;background:var(--accent);color:var(--accent-ink);align-items:center;justify-content:center}
+.cel .ev{
+  font-size:10.5px;line-height:1.35;padding:2px 5px;border-radius:5px;
+  background:var(--accent-soft);color:var(--accent);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;
+}
+.cel .ev:hover{filter:brightness(.95)}
+.cel .ev.late{background:var(--danger-soft);color:var(--danger);font-weight:600}
+.cel .ev.done{background:var(--surface-2);color:var(--muted);text-decoration:line-through}
+.cel .mais{font-size:10px;color:var(--muted);padding-left:5px;text-align:left}
+.cal-nav{display:flex;align-items:center;gap:2px}
+
+@media(max-width:760px){
+  .modal.wide{width:calc(100vw - 16px)}
+  .cel{min-height:52px;padding:4px;gap:2px;align-items:center;justify-content:flex-start}
+  .cel .ev,.cel .mais{display:none}      /* chips não cabem: vira contador */
+  .cel .cnt{display:inline-flex}
+  .cel .dn{justify-content:center;font-size:13px}
+  .cal-head span{font-size:9.5px;padding:6px 2px}
+}
+
+/* ============================================================
    MANUAL DE OPERAÇÕES
    ============================================================ */
 .sheet{
@@ -579,9 +630,37 @@ body.arrastando .card{cursor:grabbing}
     <div class="bar"><i id="loadBar" style="width:0%"></i></div>
     <small id="loadCap">de 6h</small>
   </div>
-  <div class="week" id="week"></div>
+  <div class="semana">
+    <button class="btn btn-sm btn-ghost" id="semAnt" title="7 dias para trás" aria-label="Semana anterior">‹</button>
+    <div class="week" id="week"></div>
+    <button class="btn btn-sm btn-ghost" id="semProx" title="7 dias para frente" aria-label="Próxima semana">›</button>
+    <button class="btn btn-sm btn-ghost" id="semHoje" style="display:none" title="Voltar para hoje">hoje</button>
+    <button class="btn btn-sm" id="btnMes" title="Ver o mês inteiro">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      Mês
+    </button>
+  </div>
   <div class="spacer"></div>
+  <button class="chip" id="chipFiltro" style="display:none"></button>
   <span class="chip" id="chipLate" style="display:none"></span>
+</div>
+
+<!-- ==================== CALENDÁRIO DO MÊS ==================== -->
+<div class="modal wide" id="mMes">
+  <div class="modal-head">
+    <div class="cal-nav">
+      <button class="btn btn-sm btn-ghost" id="mesAnt" aria-label="Mês anterior">‹</button>
+      <button class="btn btn-sm btn-ghost" id="mesProx" aria-label="Próximo mês">›</button>
+    </div>
+    <h3 id="mesTitulo">—</h3>
+    <button class="btn btn-sm" id="mesHoje">Hoje</button>
+    <button class="btn btn-sm btn-ghost" data-close>✕</button>
+  </div>
+  <div class="modal-body" style="padding:0;gap:0">
+    <div class="cal-head" id="calHead"></div>
+    <div class="cal" id="calGrade"></div>
+  </div>
+  <div class="modal-foot" id="mesRodape" style="justify-content:space-between;align-items:center"></div>
 </div>
 
 <!-- ==================== BOARD ==================== -->
@@ -944,8 +1023,10 @@ function save(){
 
 let state = load();
 
-/* filtros voláteis (não persistem) */
+/* filtros e navegação voláteis (não persistem) */
 const filtro={q:'',area:'',prio:'',dia:''};
+let semanaOff=0;   // de quantas semanas a faixa do topo está deslocada
+let mesRef=null;   // {a,m} mostrado no calendário do mês
 
 /* ============================================================================
    ROTINAS → geram tarefas
@@ -989,6 +1070,7 @@ function visivel(t){
   if(filtro.prio && t.prio!==filtro.prio) return false;
   if(filtro.dia){
     if(filtro.dia==='__late'){ if(!(t.prazo && diasAte(t.prazo)<0 && t.coluna!=='feito')) return false; }
+    else if(filtro.dia==='__sem'){ if(t.prazo || t.coluna==='feito') return false; }
     else if(t.prazo!==filtro.dia) return false;
   }
   return true;
@@ -1204,14 +1286,39 @@ function renderContexto(){
 
   const wk=$('#week'); wk.innerHTML='';
   for(let i=0;i<7;i++){
-    const d=new Date(); d.setDate(d.getDate()+i); const s=iso(d);
-    const n=state.tasks.filter(x=>x.prazo===s && x.coluna!=='feito').length;
+    const d=new Date(); d.setDate(d.getDate()+semanaOff*7+i); const s=iso(d);
+    const abertas=state.tasks.filter(x=>x.prazo===s && x.coluna!=='feito');
+    const n=abertas.length;
+    const atrasado=abertas.length && diasAte(s)<0;
     const b=document.createElement('button');
-    b.className='day'+(n?' has':'')+(filtro.dia===s?' sel':'');
-    b.innerHTML=`<div class="d">${i===0?'hoje':DIAS[d.getDay()]}</div><div class="n">${d.getDate()}</div><div class="c">${n||'–'}</div>`;
+    b.className='day'+(n?' has':'')+(filtro.dia===s?' sel':'')+(atrasado?' late':'');
+    /* no dia 1 mostra o mês, senão a faixa fica ambígua ao virar o mês */
+    const rot = s===t ? 'hoje'
+              : d.getDate()===1 ? d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')
+              : DIAS[d.getDay()];
+    b.innerHTML=`<div class="d">${rot}</div><div class="n">${d.getDate()}</div><div class="c">${n||'–'}</div>`;
     b.onclick=()=>{ filtro.dia = filtro.dia===s?'':s; render(); };
     wk.appendChild(b);
   }
+  $('#semHoje').style.display = semanaOff?'inline-flex':'none';
+  /* chip que mostra e limpa o filtro em uso */
+  const fc=$('#chipFiltro');
+  const partes=[];
+  if(filtro.dia==='__late') partes.push('atrasadas');
+  else if(filtro.dia==='__sem') partes.push('sem prazo');
+  else if(filtro.dia) partes.push(parseD(filtro.dia).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}));
+  if(filtro.area) partes.push(filtro.area);
+  if(filtro.prio) partes.push('prioridade '+filtro.prio);
+  if(filtro.q) partes.push(`"${filtro.q}"`);
+  fc.style.display = partes.length?'inline-flex':'none';
+  fc.className='chip on';
+  fc.textContent=`${partes.join(' · ')}  ✕`;
+  fc.onclick=()=>{
+    filtro.dia=''; filtro.area=''; filtro.prio=''; filtro.q='';
+    $('#search').value=''; $('#fArea').value=''; $('#fPrio').value='';
+    render();
+  };
+
   const atras=state.tasks.filter(x=>x.prazo && diasAte(x.prazo)<0 && x.coluna!=='feito').length;
   const chip=$('#chipLate');
   chip.style.display=atras?'inline-flex':'none';
@@ -1223,6 +1330,83 @@ function renderContexto(){
   $('#areas').innerHTML=areas.map(a=>`<option value="${esc(a)}">`).join('');
   const fa=$('#fArea'), atual=fa.value;
   fa.innerHTML='<option value="">Todas as áreas</option>'+areas.map(a=>`<option${a===atual?' selected':''}>${esc(a)}</option>`).join('');
+}
+
+/* ---------- navegação da faixa semanal ---------- */
+$('#semAnt').onclick =()=>{ semanaOff--; renderContexto(); };
+$('#semProx').onclick=()=>{ semanaOff++; renderContexto(); };
+$('#semHoje').onclick=()=>{ semanaOff=0; renderContexto(); };
+
+/* ============================================================================
+   CALENDÁRIO DO MÊS
+   Mostra todas as demandas com prazo, mês a mês. Clicar num dia filtra o
+   quadro por aquele dia; clicar numa demanda abre a tarefa.
+   ============================================================================ */
+const MESES_DIA=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+$('#btnMes').onclick=()=>{
+  const d=new Date();
+  mesRef ??= {a:d.getFullYear(), m:d.getMonth()};
+  renderMes(); abrir('mMes');
+};
+$('#mesAnt').onclick =()=>{ mesRef.m--; if(mesRef.m<0){mesRef.m=11;mesRef.a--;} renderMes(); };
+$('#mesProx').onclick=()=>{ mesRef.m++; if(mesRef.m>11){mesRef.m=0;mesRef.a++;} renderMes(); };
+$('#mesHoje').onclick=()=>{ const d=new Date(); mesRef={a:d.getFullYear(),m:d.getMonth()}; renderMes(); };
+
+function renderMes(){
+  const {a,m}=mesRef, t=hoje();
+  /* "agosto de 2026" → "Agosto de 2026" (capitalize do CSS maiusculizaria o "de") */
+  const rotulo=new Date(a,m,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  $('#mesTitulo').textContent=rotulo.charAt(0).toUpperCase()+rotulo.slice(1);
+  $('#calHead').innerHTML=MESES_DIA.map(d=>`<span>${d}</span>`).join('');
+
+  /* a grade começa no domingo da semana em que cai o dia 1 */
+  const inicio=new Date(a,m,1);
+  inicio.setDate(1-inicio.getDay());
+  const grade=$('#calGrade'); grade.innerHTML='';
+
+  let comPrazoNoMes=0;
+  for(let i=0;i<42;i++){
+    const d=new Date(inicio); d.setDate(inicio.getDate()+i);
+    const s=iso(d), doMes=d.getMonth()===m, fds=d.getDay()===0||d.getDay()===6;
+    const doDia=state.tasks.filter(x=>x.prazo===s)
+                           .sort((x,y)=>(x.coluna==='feito')-(y.coluna==='feito'));
+    if(doMes) comPrazoNoMes+=doDia.length;
+
+    const cel=document.createElement('button');
+    cel.className='cel'+(doMes?'':' fora')+(fds?' fds':'')+(s===t?' hoje':'')+(filtro.dia===s?' sel':'');
+    cel.innerHTML=`<div class="dn">${d.getDate()}${doDia.length?`<span class="cnt">${doDia.length}</span>`:''}</div>`;
+
+    doDia.slice(0,3).forEach(x=>{
+      const ev=document.createElement('span');
+      const atrasada = x.coluna!=='feito' && diasAte(s)<0;
+      ev.className='ev'+(x.coluna==='feito'?' done':atrasada?' late':'');
+      ev.textContent=x.titulo;
+      ev.title=`${x.titulo}\n${COLS.find(c=>c.id===x.coluna).nome}${x.area?' · '+x.area:''}`;
+      ev.onclick=e=>{ e.stopPropagation(); fechar('mMes'); abrirDrawer(x.id); };
+      cel.appendChild(ev);
+    });
+    if(doDia.length>3){
+      const mais=document.createElement('span');
+      mais.className='mais'; mais.textContent=`+${doDia.length-3} mais`;
+      cel.appendChild(mais);
+    }
+    cel.onclick=()=>{ filtro.dia = filtro.dia===s?'':s; fechar('mMes'); render(); };
+    grade.appendChild(cel);
+  }
+
+  const semPrazo=state.tasks.filter(x=>!x.prazo && x.coluna!=='feito').length;
+  const rod=$('#mesRodape');
+  rod.innerHTML=`<small style="color:var(--muted);font-size:12px">
+      ${comPrazoNoMes} demanda${comPrazoNoMes!==1?'s':''} com prazo neste mês</small>`;
+  if(semPrazo){
+    const b=document.createElement('button');
+    b.className='btn btn-sm';
+    b.textContent=`${semPrazo} sem prazo`;
+    b.title='Ver no quadro as tarefas que ainda não têm prazo';
+    b.onclick=()=>{ filtro.dia='__sem'; fechar('mMes'); render(); };
+    rod.appendChild(b);
+  }
 }
 
 /* ============================================================================
@@ -1445,6 +1629,7 @@ function baixar(nome,txt,tipo){
 $('#btnMenu').onclick=()=>{
   const itens=[
     ['btnPriorizar','✦ Priorizar meu dia',true],
+    ['btnMes','▦ Calendário do mês'],
     ['btnManual','Manual de operações'],
     ['btnRotinas','↻ Rotinas'],
     ['btnRelatorio','📄 Resumo'],
@@ -2278,6 +2463,7 @@ document.addEventListener('keydown',e=>{
   if(editando) return;
   if(e.key==='/'){ e.preventDefault(); $('#search').focus(); }
   if(e.key==='m'){ e.preventDefault(); $('#manual').classList.contains('open')?fecharManual():abrirManual(); }
+  if(e.key==='c'){ e.preventDefault(); $('#btnMes').click(); }
   if(e.key==='n'){ e.preventDefault(); $('.col[data-col="hoje"] .quick')?.focus(); }
   if(e.key==='p'){ e.preventDefault(); $('#btnPriorizar').click(); }
   if(e.key==='f'&&timer.taskId){ e.preventDefault(); pararFoco(); }

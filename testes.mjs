@@ -49,7 +49,7 @@ const ctx = {
 };
 ctx.globalThis = ctx;
 vm.createContext(ctx);
-vm.runInContext(src + '\n;globalThis.__api={criarTarefaDeProc,linhas,deLinhas,procBase,passoBase,state,hoje,diasAte,fmtMin,pontuar,mover,rodarRotinas,priorizarLocal,normalizarOrdem,COLS,tarefaBase,ck,iso,estimarLocal,render,descCad,checarAvisos,agoraLocal,renderAvisos,LOGO};', ctx);
+vm.runInContext(src + '\n;globalThis.__api={visivel,filtro,renderMes,criarTarefaDeProc,linhas,deLinhas,procBase,passoBase,state,hoje,diasAte,fmtMin,pontuar,mover,rodarRotinas,priorizarLocal,normalizarOrdem,COLS,tarefaBase,ck,iso,estimarLocal,render,descCad,checarAvisos,agoraLocal,renderAvisos,LOGO};', ctx);
 
 const A = ctx.__api;
 let ok = 0, bad = 0;
@@ -233,6 +233,60 @@ A.render(); await new Promise(r => setTimeout(r, 300));
 const bk = JSON.parse(store.get('fluxo.gabriela.v1'));
 t('backup inclui o manual', Array.isArray(bk.manual) && bk.manual.length === st.manual.length);
 t('backup preserva os passos do procedimento', bk.manual[0].passos.length === st.manual[0].passos.length);
+
+console.log('\n— calendário do mês —');
+// a grade sempre começa num domingo e cobre 42 dias (6 semanas)
+const gradeDe = (a, m) => {
+  const ini = new Date(a, m, 1); ini.setDate(1 - ini.getDay());
+  return Array.from({ length: 42 }, (_, i) => { const d = new Date(ini); d.setDate(ini.getDate() + i); return d; });
+};
+t('grade começa no domingo', gradeDe(2026, 7)[0].getDay() === 0);
+t('grade cobre o mês inteiro', (() => {
+  const g = gradeDe(2026, 7), dias = g.filter(d => d.getMonth() === 7);
+  return dias.length === 31 && dias[0].getDate() === 1 && dias[30].getDate() === 31;
+})());
+t('fevereiro bissexto cabe na grade', (() => {
+  const dias = gradeDe(2028, 1).filter(d => d.getMonth() === 1);
+  return dias.length === 29;
+})());
+t('mês que começa no domingo não empurra semana vazia', (() => {
+  const g = gradeDe(2026, 2); // março/2026 começa num domingo
+  return g[0].getDate() === 1 && g[0].getMonth() === 2;
+})());
+t('grade nunca perde dia na virada do ano', (() => {
+  const dias = gradeDe(2026, 11).filter(d => d.getMonth() === 11);
+  return dias.length === 31;
+})());
+
+// navegação de mês com virada de ano
+let ref = { a: 2026, m: 11 };
+ref.m++; if (ref.m > 11) { ref.m = 0; ref.a++; }
+t('dezembro → janeiro vira o ano', ref.a === 2027 && ref.m === 0);
+ref.m--; if (ref.m < 0) { ref.m = 11; ref.a--; }
+t('janeiro → dezembro volta o ano', ref.a === 2026 && ref.m === 11);
+
+// faixa semanal deslocada
+const faixa = off => Array.from({ length: 7 }, (_, i) => {
+  const d = new Date(); d.setDate(d.getDate() + off * 7 + i); return A.iso(d);
+});
+t('faixa começa em hoje sem deslocamento', faixa(0)[0] === A.hoje());
+t('deslocar +1 pula 7 dias', A.diasAte(faixa(1)[0]) === 7);
+t('deslocar -1 volta 7 dias', A.diasAte(faixa(-1)[0]) === -7);
+t('faixa sempre tem 7 dias distintos', new Set(faixa(3)).size === 7);
+
+// filtro "sem prazo"
+const semPrazo = { ...A.tarefaBase(), titulo: 'Sem data definida', coluna: 'entrada', prazo: '' };
+const comPrazo = { ...A.tarefaBase(), titulo: 'Com data', coluna: 'entrada', prazo: A.hoje() };
+const concluidaSemPrazo = { ...A.tarefaBase(), titulo: 'Feita sem data', coluna: 'feito', prazo: '' };
+st.tasks.push(semPrazo, comPrazo, concluidaSemPrazo);
+A.filtro.dia = '__sem';
+t('filtro sem-prazo pega tarefa sem data', A.visivel(semPrazo));
+t('filtro sem-prazo ignora quem tem data', !A.visivel(comPrazo));
+t('filtro sem-prazo ignora concluídas', !A.visivel(concluidaSemPrazo));
+A.filtro.dia = '__late';
+t('filtro atrasadas ignora quem vence hoje', !A.visivel(comPrazo));
+A.filtro.dia = '';
+t('sem filtro tudo aparece', A.visivel(semPrazo) && A.visivel(comPrazo));
 
 console.log(`\n=== ${ok} passaram, ${bad} falharam ===`);
 process.exit(bad ? 1 : 0);
